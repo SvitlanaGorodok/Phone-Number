@@ -1,12 +1,11 @@
 package api.phonecontacts.controller;
 
 import api.phonecontacts.model.dto.ContactDto;
-import api.phonecontacts.model.mapper.EntityMapper;
 import api.phonecontacts.service.ContactService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -20,25 +19,25 @@ public class ContactController {
 
     @GetMapping
     public ResponseEntity<Set<ContactDto>> findAll() {
-        Set<ContactDto> contacts = service.findAll();
-        return new ResponseEntity<>(contacts, HttpStatus.OK);
+        UUID userId = UUID.fromString("4e3c27be-76de-496a-bed2-fb2dcb71ab7a");
+        return new ResponseEntity<>(service.findAllByUserId(userId), HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<ContactDto> addContact(@Validated @RequestBody ContactDto contactDto)  {
-        ContactDto saved = service.save(contactDto);
-        return new ResponseEntity<>(saved, HttpStatus.OK);
+    public ResponseEntity<String> addContact(@Valid @RequestBody ContactDto contactDto)  {
+        UUID userId = UUID.fromString("4e3c27be-76de-496a-bed2-fb2dcb71ab7a");
+        return new ResponseEntity<>(service.addContact(contactDto, userId), HttpStatus.OK);
     }
 
     @PutMapping
-    public ResponseEntity<ContactDto> updateContact(@Validated @RequestBody ContactDto contactDto)  {
-        ContactDto saved = service.save(contactDto);
-        return new ResponseEntity<>(saved, HttpStatus.OK);
+    public ResponseEntity<String > updateContact(@Valid @RequestBody ContactDto contactDto)  {
+        UUID userId = UUID.fromString("4e3c27be-76de-496a-bed2-fb2dcb71ab7a");
+        return new ResponseEntity<>(service.update(contactDto, userId), HttpStatus.OK);
     }
 
     @DeleteMapping
-    public ResponseEntity<Boolean> deleteContact(@RequestParam UUID id) {
-        service.deleteById(id);
-        return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
+    public ResponseEntity<String> deleteContact(@RequestParam String name) {
+        UUID userId = UUID.fromString("4e3c27be-76de-496a-bed2-fb2dcb71ab7a");
+        return new ResponseEntity<>(service.deleteByName(name, userId), HttpStatus.OK);
     }
 }

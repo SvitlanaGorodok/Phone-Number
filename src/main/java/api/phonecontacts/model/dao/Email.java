@@ -11,7 +11,7 @@ import java.util.UUID;
 @Entity
 @Setter
 @Getter
-public class EmailDao {
+public class Email {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

@@ -11,7 +11,7 @@ import java.util.UUID;
 @Entity
 @Setter
 @Getter
-public class PhoneNumberDao {
+public class PhoneNumber {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

@@ -32,12 +32,12 @@ public class ContactDao {
             joinColumns = @JoinColumn(name = "contact_id"),
             inverseJoinColumns = @JoinColumn(name = "email_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<EmailDao> emails = new HashSet<>();
+    private Set<Email> emails = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(name = "contacts_numbers",
             joinColumns = @JoinColumn(name = "contact_id"),
             inverseJoinColumns = @JoinColumn(name = "number_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<PhoneNumberDao> phoneNumbers = new HashSet<>();
+    private Set<PhoneNumber> phoneNumbers = new HashSet<>();
 }
