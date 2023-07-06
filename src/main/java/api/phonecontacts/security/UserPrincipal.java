@@ -1,5 +1,6 @@
 package api.phonecontacts.security;
 
+import api.phonecontacts.model.dto.UserDto;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,11 +10,11 @@ import java.util.List;
 
 @AllArgsConstructor
 public class UserPrincipal implements UserDetails {
-    private final User user;
+    private final UserDto user;
 
     @Override
     public Collection<SimpleGrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(user.getRole()));
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
@@ -23,7 +24,7 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getUsername();
+        return user.getLogin();
     }
 
     @Override

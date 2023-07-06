@@ -1,18 +1,18 @@
 package api.phonecontacts.security;
 
+import api.phonecontacts.model.dto.UserDto;
+import api.phonecontacts.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @RequiredArgsConstructor
 public class MyUserDetailsService implements UserDetailsService {
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final UserService service;
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        String encodedPassword = passwordEncoder.encode("admin");
-        User user = new User("admin", encodedPassword, "ROLE_ADMIN");
+        UserDto user = service.findByLogin(username);
         return new UserPrincipal(user);
     }
 }

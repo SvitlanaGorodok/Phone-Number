@@ -20,7 +20,7 @@ public class UserDao {
     @Column(name = "login", nullable = false, length = 50, unique = true)
     private String login;
 
-    @Column(name = "password", nullable = false, length = 50)
+    @Column(name = "password", nullable = false, length = 100)
     private String password;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")

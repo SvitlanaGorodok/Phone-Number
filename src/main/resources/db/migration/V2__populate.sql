@@ -1,4 +1,4 @@
-INSERT INTO users (id, login, password) VALUES ('4e3c27be-76de-496a-bed2-fb2dcb71ab7a', 'admin', 'admin');
+INSERT INTO users (id, login, password) VALUES ('4e3c27be-76de-496a-bed2-fb2dcb71ab7a', 'admin', '$2a$12$nyhcs.Zi0QBKHNns3Qd08.3sNM9VCLSYYJYUxlpjti1WOXWcTauQ6');
 
 INSERT INTO contacts (id, name, user_id)
 VALUES ('072f378d-a7a8-44db-856a-4044668dfbe3', 'contact1', '4e3c27be-76de-496a-bed2-fb2dcb71ab7a'),
