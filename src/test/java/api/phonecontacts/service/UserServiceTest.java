@@ -88,7 +88,7 @@ class UserServiceTest {
         when(repository.findById(any(UUID.class))).thenReturn(Optional.empty());
         NoSuchEntityFoundException exception = assertThrows(NoSuchEntityFoundException.class,
                 () -> service.findById(id));
-        assertEquals("User with id " + id + "not found!", exception.getMessage());
+        assertEquals("User with id " + id + " not found!", exception.getMessage());
     }
 
     @Test
@@ -121,6 +121,6 @@ class UserServiceTest {
         when(repository.findByLogin(anyString())).thenReturn(Optional.of(userDao));
         UserAlreadyExistException exception = assertThrows(UserAlreadyExistException.class,
                 () -> service.registration(userDto));
-        assertEquals("User with login " + userDto.getLogin() + "is already exist!", exception.getMessage());
+        assertEquals("User with login " + userDto.getLogin() + " is already exist!", exception.getMessage());
     }
 }
