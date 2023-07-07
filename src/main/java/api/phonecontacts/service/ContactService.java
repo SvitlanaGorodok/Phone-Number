@@ -1,5 +1,6 @@
 package api.phonecontacts.service;
 
+import api.phonecontacts.exception.FileNotExistException;
 import api.phonecontacts.exception.InvalidFormatException;
 import api.phonecontacts.exception.NoSuchEntityFoundException;
 import api.phonecontacts.exception.NonUniqueDataException;
@@ -10,11 +11,13 @@ import api.phonecontacts.model.mapper.EntityMapper;
 import api.phonecontacts.repository.ContactRepository;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -67,6 +70,7 @@ public class ContactService implements CrudService<ContactDto> {
                 .filter(contact -> contact.getUser().getId().equals(userId))
                 .collect(Collectors.toSet());
     }
+
     public ContactDto addContact(ContactDto contactDto, UUID userId) {
         isContactDataValid(contactDto);
 
@@ -114,14 +118,30 @@ public class ContactService implements CrudService<ContactDto> {
         }
     }
 
-    public void exportContacts(UUID userId){
+    public void exportContacts(UUID userId) {
         gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        try (PrintWriter out = new PrintWriter(new FileWriter("user_" + userId + "_contacts.json")))
-        {
+        try (PrintWriter out = new PrintWriter(new FileWriter("user_" + userId + "_contacts.json"))) {
             out.write(gson.toJson(findAllByUserId(userId)));
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
+    }
+
+    public void importContacts(UUID userId, String fileName) {
+        gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        List<ContactDto> contactsFromFile = new ArrayList<>();
+        try (Reader reader = Files.newBufferedReader(Paths.get(fileName))) {
+            contactsFromFile = gson.fromJson(reader,
+                    new TypeToken<List<ContactDto>>() {
+                    }.getType());
+        } catch (FileNotFoundException e) {
+            throw new FileNotExistException("File not found!");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        contactsFromFile.forEach(this::isContactDataValid);
+//        contactsFromFile.forEach(contactDto -> addContact(contactDto, userId));
+        addContactsFromFile(contactsFromFile, userId);
     }
 
     private Optional<ContactDto> findByNameAndUserId(String name, UUID userId) {
@@ -134,7 +154,7 @@ public class ContactService implements CrudService<ContactDto> {
         }
     }
 
-    private void isContactDataValid(ContactDto contactDto){
+    private void isContactDataValid(ContactDto contactDto) {
         if (!isEmailsValid(contactDto.getEmails())) {
             throw new InvalidFormatException("Please provide valid emails!");
         }
@@ -165,10 +185,45 @@ public class ContactService implements CrudService<ContactDto> {
                 .allMatch(contact ->
                         Collections.disjoint(contact.getEmails(), contactDto.getEmails()) &&
                                 Collections.disjoint(contact.getPhoneNumbers(), contactDto.getPhoneNumbers()));
-        if(!isUnique){
+        if (!isUnique) {
             throw new NonUniqueDataException("Email and phone number should be unique!");
         }
     }
 
+    private void addContactsFromFile(List<ContactDto> contacts, UUID userId) {
+        Set<ContactDto> allUserContacts = findAllByUserId(userId);
+
+        Set<String> allUserContactNames = allUserContacts.stream()
+                .map(ContactDto::getName)
+                .collect(Collectors.toSet());
+
+        Set<String> contactNames = contacts.stream()
+                .map(ContactDto::getName)
+                .collect(Collectors.toSet());
+
+        if (contactNames.stream()
+                .anyMatch(allUserContactNames::contains)) {
+            throw new NonUniqueDataException("Contact already exist!");
+        } else {
+            contacts.forEach(
+                    contact -> {
+                        validateIfContactDataUnique(contact, allUserContacts);
+                        contact.setId(UUID.randomUUID());
+                        contact.setUser(new UserDto(userId));
+                    }
+            );
+            Set<ContactDao> contactDaos = contacts.stream()
+                    .map(
+                            contact -> {
+                                ContactDao contactDao = mapper.contactToDao(contact);
+                                contactDao.setEmails(emailService.setEmailsId(contact.getEmails()));
+                                contactDao.setPhoneNumbers(phoneNumberService.setNumbersId(contact.getPhoneNumbers()));
+                                return contactDao;
+                            }
+                    )
+                    .collect(Collectors.toSet());
+            repository.saveAll(contactDaos);
+        }
+    }
 
 }

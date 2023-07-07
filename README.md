@@ -46,6 +46,10 @@ To **update contact** use PUT for localhost:8080/contacts and provide json with 
     "phoneNumbers": ["+380980000000", "+380982222222"]
     }
 
-To **delete contact** use DELETE for localhost:8080/contacts and provide query parameter for name.
+To **delete contact** use DELETE for localhost:8080/contacts and provide query parameter for name, 
+for instance, contact1.
 
 To **export all your contact** to main directory use GET for localhost:8080/contacts/export.
+
+To **import all your contact** to main directory use POST for localhost:8080/contacts/import and provide query 
+parameter for filename, for instance, contacts.json.

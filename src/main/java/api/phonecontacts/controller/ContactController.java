@@ -1,5 +1,6 @@
 package api.phonecontacts.controller;
 
+import api.phonecontacts.exception.FileNotExistException;
 import api.phonecontacts.exception.InvalidFormatException;
 import api.phonecontacts.exception.NoSuchEntityFoundException;
 import api.phonecontacts.exception.NonUniqueDataException;
@@ -77,6 +78,19 @@ public class ContactController {
         String message = "Contact successfully exported!";
         service.exportContacts(userId);
         log.info("User's contacts with id" + userId + "exported");
+        return new ResponseEntity<>(message, HttpStatus.OK);
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<String> importContacts(@RequestParam String filename) {
+        UUID userId = userService.getCurrentUserId();
+        String message = "Contact successfully imported!";
+        try {
+            service.importContacts(userId, filename);
+        } catch (InvalidFormatException | NonUniqueDataException | FileNotExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        log.info("Handling import contact for user " + userId);
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
 }
