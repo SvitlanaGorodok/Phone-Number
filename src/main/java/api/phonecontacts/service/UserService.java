@@ -1,6 +1,7 @@
 package api.phonecontacts.service;
 
 import api.phonecontacts.exception.NoSuchEntityFoundException;
+import api.phonecontacts.exception.UserAlreadyExistException;
 import api.phonecontacts.model.dao.UserDao;
 import api.phonecontacts.model.dto.UserDto;
 import api.phonecontacts.model.mapper.EntityMapper;
@@ -8,17 +9,17 @@ import api.phonecontacts.repository.UserRepository;
 import api.phonecontacts.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
-public class UserService implements CrudService<UserDto>{
+public class UserService implements CrudService<UserDto> {
     private final UserRepository repository;
     private final EntityMapper mapper;
     private final BCryptPasswordEncoder encoder;
@@ -42,7 +43,7 @@ public class UserService implements CrudService<UserDto>{
     @Override
     public UserDto findById(UUID id) {
         UserDao userDao = repository.findById(id)
-                .orElseThrow(() -> new NoSuchEntityFoundException("User with id " + id + "not found!"));
+                .orElseThrow(() -> new NoSuchEntityFoundException("User with id " + id + " not found!"));
         return mapper.userToDto(userDao);
     }
 
@@ -51,22 +52,28 @@ public class UserService implements CrudService<UserDto>{
         repository.deleteById(id);
     }
 
-    public UserDto findByLogin(String login){
-        UserDao userDao = repository.findByLogin(login)
-                .orElseThrow(() ->
-                        new UsernameNotFoundException(String.format("User with username %s not found!", login)));
-        return mapper.userToDto(userDao);
+    public Optional<UserDto> findByLogin(String login) {
+        Optional<UserDao> findByLogin = repository.findByLogin(login);
+        return findByLogin.map(mapper::userToDto);
     }
 
-    public UserDto registration(UserDto userDto){
-        userDto.setPassword(encoder.encode(userDto.getPassword()));
-        return save(userDto);
+    public void registration(UserDto userDto) {
+        if (findByLogin(userDto.getLogin()).isEmpty()) {
+            userDto.setPassword(encoder.encode(userDto.getPassword()));
+            save(userDto);
+        } else {
+            throw new UserAlreadyExistException("User with login " + userDto.getLogin() + " is already exist!");
+        }
     }
 
-    public UUID getCurrentUserId(){
+    public UUID getCurrentUserId() {
         UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
-        UserDto user = findByLogin(userPrincipal.getUsername());
-        return user.getId();
+        Optional<UserDto> findByLogin = findByLogin(userPrincipal.getUsername());
+        if (findByLogin.isPresent()) {
+            return findByLogin.get().getId();
+        } else {
+            throw new NoSuchEntityFoundException("User not found!");
+        }
     }
 }

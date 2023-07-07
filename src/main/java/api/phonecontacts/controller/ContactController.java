@@ -1,5 +1,8 @@
 package api.phonecontacts.controller;
 
+import api.phonecontacts.exception.InvalidFormatException;
+import api.phonecontacts.exception.NoSuchEntityFoundException;
+import api.phonecontacts.exception.NonUniqueDataException;
 import api.phonecontacts.model.dto.ContactDto;
 import api.phonecontacts.service.ContactService;
 import api.phonecontacts.service.UserService;
@@ -32,7 +35,12 @@ public class ContactController {
     @PostMapping
     public ResponseEntity<String> addContact(@Valid @RequestBody ContactDto contactDto)  {
         UUID userId = userService.getCurrentUserId();
-        String message = service.addContact(contactDto, userId);
+        String message = "Contact successfully added!";
+        try {
+            service.addContact(contactDto, userId);
+        } catch (InvalidFormatException | NonUniqueDataException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
         log.info("Handling save contact: " + contactDto.getId());
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
@@ -40,7 +48,12 @@ public class ContactController {
     @PutMapping
     public ResponseEntity<String > updateContact(@Valid @RequestBody ContactDto contactDto)  {
         UUID userId = userService.getCurrentUserId();
-        String message = service.update(contactDto, userId);
+        String message = "Contact successfully updated!";
+        try {
+            service.updateContact(contactDto, userId);
+        } catch (InvalidFormatException | NonUniqueDataException | NoSuchEntityFoundException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
         log.info("Handling update contact: " + contactDto.getId());
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
@@ -48,8 +61,22 @@ public class ContactController {
     @DeleteMapping
     public ResponseEntity<String> deleteContact(@RequestParam String name) {
         UUID userId = userService.getCurrentUserId();
-        String message = service.deleteByName(name, userId);
+        String message = "Contact successfully deleted!";
+        try {
+            service.deleteByName(name, userId);
+        } catch (NoSuchEntityFoundException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
         log.info("Handling delete contact: " + name);
+        return new ResponseEntity<>(message, HttpStatus.OK);
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<String> export() {
+        UUID userId = userService.getCurrentUserId();
+        String message = "Contact successfully exported!";
+        service.exportContacts(userId);
+        log.info("User's contacts with id" + userId + "exported");
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
 }

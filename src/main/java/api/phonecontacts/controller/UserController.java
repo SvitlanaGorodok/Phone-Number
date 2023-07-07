@@ -1,5 +1,6 @@
 package api.phonecontacts.controller;
 
+import api.phonecontacts.exception.UserAlreadyExistException;
 import api.phonecontacts.model.dto.UserDto;
 import api.phonecontacts.service.UserService;
 import jakarta.servlet.ServletException;
@@ -33,9 +34,14 @@ public class UserController {
 
     @PostMapping("/registration")
     public ResponseEntity<String>  registration(@Valid @RequestBody UserDto userDto) {
+        String message = "You are registered! Please login with your credentials!";
+        try{
+            service.registration(userDto);
+        } catch (UserAlreadyExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
         log.info("User " + userDto.getLogin() + " registered");
-        service.registration(userDto);
-        return new ResponseEntity<>("You are registered! Please login with your credentials!", HttpStatus.OK);
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
 }
