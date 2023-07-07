@@ -15,9 +15,9 @@ spring.datasource.password=${password}
 **Description**
 ------------------------------------------------------------------------------------
 We have one registered user with credentials: login = "admin", password = "admin".
-To register new eser please use POST request for localhost:8080/registration and provide login and password.
-After registration please use POST request for localhost:8080/auth and provide login and password.
-For sign out from application use GET request localhost:8080/logout.
+To register new eser please use POST method for localhost:8080/registration and provide login and password.
+After registration please use POST method for localhost:8080/auth and provide login and password.
+For sign out from application use GET method localhost:8080/logout.
 
 To see **all your contacts** use GET for localhost:8080/contacts.
 
